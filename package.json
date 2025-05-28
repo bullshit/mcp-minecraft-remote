@@ -37,6 +37,7 @@
     "LICENSE"
   ],
   "devDependencies": {
+    "@types/express": "^5.0.2",
     "@types/node": "^22.13.10",
     "typescript": "^5.8.2"
   },
@@ -45,6 +46,7 @@
   },
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.7.0",
+    "express": "^5.1.0",
     "mineflayer": "^4.19.0",
     "mineflayer-pathfinder": "^2.4.5",
     "zod": "^3.22.4"

@@ -1,19 +1,26 @@
 #!/usr/bin/env node
-import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js'
+import { SSEServerTransport } from '@modelcontextprotocol/sdk/server/sse.js'
 import { server } from './server.js'
 import { registerAllTools } from './tools/index.js'
+import { IncomingMessage, ServerResponse } from "node:http";
+import express from "express";
+
+let transport: SSEServerTransport | null = null;
+const app = express();
 
 // Register all tools
 registerAllTools()
 
-async function main() {
-  const transport = new StdioServerTransport()
-  await server.connect(transport)
-  // Using standard error output because standard output would be interpreted as a server response
-  console.error('MCP Minecraft Remote Server running on stdio')
-}
+app.get("/sse", (eq: IncomingMessage, res: ServerResponse) => {
+  transport = new SSEServerTransport("/messages", res);
+  console.info('MCP Minecraft Remote Server running on :3000')
+  server.connect(transport);
+});
 
-main().catch((error) => {
-  console.error('Fatal error in main():', error)
-  process.exit(1)
-})
+app.post("/messages", (req: IncomingMessage, res: ServerResponse,) => {
+  if (transport) {
+    transport.handlePostMessage(req, res);
+  }
+});
+
+app.listen(3000);
