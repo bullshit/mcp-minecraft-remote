@@ -1,0 +1,16 @@
+{
+    "image": "mcr.microsoft.com/devcontainers/javascript-node:1-20-bookworm",
+    "customizations": {
+        "vscode": {
+            "extensions": [
+                "ms-vscode.vscode-typescript-next"
+            ]
+        }
+    },
+    "features": {
+        "ghcr.io/devcontainers/features/docker-in-docker:2": {},
+        "ghcr.io/devcontainer-community/devcontainer-features/bun.sh:1": {}
+    },
+    "remoteUser": "node",
+    "postCreateCommand": "bun install"
+}
