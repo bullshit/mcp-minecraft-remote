@@ -12,8 +12,8 @@ const app = express();
 registerAllTools()
 
 app.get("/sse", (eq: IncomingMessage, res: ServerResponse) => {
+  console.info('Client connection started');
   transport = new SSEServerTransport("/messages", res);
-  console.info('MCP Minecraft Remote Server running on :3000')
   server.connect(transport);
 });
 
@@ -23,4 +23,5 @@ app.post("/messages", (req: IncomingMessage, res: ServerResponse,) => {
   }
 });
 
+console.info('MCP Minecraft Remote Server running on :3000')
 app.listen(3000);
