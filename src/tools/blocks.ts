@@ -144,4 +144,36 @@ export function registerBlockTools() {
       }
     }
   );
+
+  // Tool for getting block information
+  server.tool(
+    "getBlockInfo",
+    "Get information about a block at the specified position",
+    {
+      x: z.number().describe("X coordinate"),
+      y: z.number().describe("Y coordinate"),
+      z: z.number().describe("Z coordinate"),
+    },
+    async ({ x, y, z }) => {
+      if (!botState.isConnected || !botState.bot) {
+        return createNotConnectedResponse();
+      }
+
+      try {
+        const blockPos = new Vec3(x, y, z);
+        const block = botState.bot.blockAt(blockPos);
+
+        if (!block) {
+          return createSuccessResponse(
+            `No block information found at position (${x}, ${y}, ${z}`
+          );
+        }
+        return createSuccessResponse(
+          `Found ${block.name} (type: ${block.type} ) at position (${block.position.x}, ${block.position.y}, ${block.position.z})`
+        );
+      } catch (error) {
+        return createErrorResponse(error as Error);
+      }
+    }
+  );
 }
