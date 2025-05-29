@@ -1,4 +1,5 @@
 import pkg from "mineflayer-pathfinder";
+import { Vec3 } from "vec3";
 import { z } from "zod";
 import { botState, server } from "../server.js";
 import { ToolResponse } from "../types.js";
@@ -85,4 +86,105 @@ export function registerMovementTools() {
       }
     }
   );
+
+  server.tool(
+    "flyTo",
+    "Make the bot fly to a specific position",
+    {
+      x: z.number().describe("X coordinate"),
+      y: z.number().describe("Y coordinate"),
+      z: z.number().describe("Z coordinate"),
+    },
+    async ({ x, y, z }) => {
+      if (!botState.isConnected || !botState.bot) {
+        return createNotConnectedResponse();
+      }
+
+      if (!botState.bot.creative) {
+        return createSuccessResponse(
+          "Creative mode is not available. Cannot fly."
+        );
+      }
+
+      const currentPos = botState.bot.entity.position;
+      console.error(
+        `Flying from (${Math.floor(currentPos.x)}, ${Math.floor(
+          currentPos.y
+        )}, ${Math.floor(currentPos.z)}) to (${Math.floor(x)}, ${Math.floor(
+          y
+        )}, ${Math.floor(z)})`
+      );
+
+      const controller = new AbortController();
+      const FLIGHT_TIMEOUT_MS = 20000;
+
+      const timeoutId = setTimeout(() => {
+        if (!controller.signal.aborted) {
+          controller.abort();
+        }
+      }, FLIGHT_TIMEOUT_MS);
+
+      try {
+        const destination = new Vec3(x, y, z);
+
+        await createCancellableFlightOperation(
+          botState.bot,
+          destination,
+          controller
+        );
+
+        return createSuccessResponse(
+          `Successfully flew to position (${x}, ${y}, ${z}).`
+        );
+      } catch (error) {
+        if (controller.signal.aborted) {
+          const currentPosAfterTimeout = botState.bot.entity.position;
+          return createErrorResponse(
+            `Flight timed out after ${
+              FLIGHT_TIMEOUT_MS / 1000
+            } seconds. The destination may be unreachable. ` +
+              `Current position: (${Math.floor(
+                currentPosAfterTimeout.x
+              )}, ${Math.floor(currentPosAfterTimeout.y)}, ${Math.floor(
+                currentPosAfterTimeout.z
+              )})`
+          );
+        }
+
+        console.error("Flight error:", error);
+        return createErrorResponse(error as Error);
+      } finally {
+        clearTimeout(timeoutId);
+        botState.bot.creative.stopFlying();
+      }
+    }
+  );
+}
+function createCancellableFlightOperation(
+  bot: any,
+  destination: Vec3,
+  controller: AbortController
+): Promise<boolean> {
+  return new Promise((resolve, reject) => {
+    let aborted = false;
+
+    controller.signal.addEventListener("abort", () => {
+      aborted = true;
+      bot.creative.stopFlying();
+      reject(new Error("Flight operation cancelled"));
+    });
+
+    bot.creative
+      .flyTo(destination)
+      .then(() => {
+        if (!aborted) {
+          resolve(true);
+        }
+      })
+      .catch((err: any) => {
+        if (!aborted) {
+          reject(err);
+        }
+      });
+  });
 }
