@@ -1,3 +1,4 @@
+import minecraftData from "minecraft-data";
 import { Vec3 } from "vec3";
 import { z } from "zod";
 import { botState, server } from "../server.js";
@@ -170,6 +171,53 @@ export function registerBlockTools() {
         }
         return createSuccessResponse(
           `Found ${block.name} (type: ${block.type} ) at position (${block.position.x}, ${block.position.y}, ${block.position.z})`
+        );
+      } catch (error) {
+        return createErrorResponse(error as Error);
+      }
+    }
+  );
+
+  // Tool for finding the nearest block of a specific type
+  server.tool(
+    "findBlock",
+    "Find the nearest block of a specific type as minecraftData.blocksByName",
+    {
+      blockType: z
+        .string()
+        .describe("Type of block to find as minecraftData.blocksByName"),
+      maxDistance: z
+        .number()
+        .optional()
+        .describe("Maximum search distance (default: 16)"),
+    },
+    async ({ blockType, maxDistance = 16 }) => {
+      if (!botState.isConnected || !botState.bot) {
+        return createNotConnectedResponse();
+      }
+      try {
+        const mcData = minecraftData(botState.bot.version);
+        const blocksByName = mcData.blocksByName;
+
+        if (!blocksByName[blockType]) {
+          return createSuccessResponse(`Unknown block type: ${blockType}`);
+        }
+
+        const blockId = blocksByName[blockType].id;
+
+        const block = botState.bot.findBlock({
+          matching: blockId,
+          maxDistance: maxDistance,
+        });
+
+        if (!block) {
+          return createSuccessResponse(
+            `No ${blockType} found within ${maxDistance} blocks`
+          );
+        }
+
+        return createSuccessResponse(
+          `Found ${blockType} at position (${block.position.x}, ${block.position.y}, ${block.position.z})`
         );
       } catch (error) {
         return createErrorResponse(error as Error);
