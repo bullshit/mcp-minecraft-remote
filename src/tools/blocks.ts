@@ -3,7 +3,6 @@ import pathfinderPkg from "mineflayer-pathfinder";
 import { Vec3 } from "vec3";
 import { z } from "zod";
 import { botState, server } from "../server.js";
-import { ToolResponse } from "../types.js";
 import {
   createErrorResponse,
   createNotConnectedResponse,
@@ -28,46 +27,25 @@ export function registerBlockTools() {
       }
 
       try {
-        // Get block at specified coordinates
-        const block = botState.bot.blockAt(new Vec3(x, y, z));
+        const bot = botState.bot!;
+        const block = bot.blockAt(new Vec3(x, y, z));
 
         if (!block || block.name === "air") {
           return createSuccessResponse(
             "No block found at the specified coordinates."
           );
         }
-        if (
-          !botState.bot!.canDigBlock(block) ||
-          !botState.bot!.canSeeBlock(block)
-        ) {
-          // Try to move closer to dig the block
-          const goal = new goals.GoalNear(x, y, z, 2);
-          botState.bot!.pathfinder.goto(goal);
-        }
-        return new Promise<ToolResponse>((resolve) => {
-          // Dig the block
-          botState
-            .bot!.dig(block)
-            .then(() => {
-              resolve(
-                createSuccessResponse(
-                  `Successfully dug ${block.name} at X=${x}, Y=${y}, Z=${z}`
-                )
-              );
-            })
-            .catch((err) => {
-              resolve(createErrorResponse(err));
-            });
 
-          // Timeout handling (if still digging after 30 seconds)
-          setTimeout(() => {
-            resolve(
-              createSuccessResponse(
-                "Digging is taking longer than expected. Still trying..."
-              )
-            );
-          }, 30000);
-        });
+        if (!bot.canDigBlock(block) || !bot.canSeeBlock(block)) {
+          const goal = new goals.GoalNear(x, y, z, 2);
+          await bot.pathfinder.goto(goal);
+        }
+
+        await bot.dig(block);
+
+        return createSuccessResponse(
+          `Successfully dug ${block.name} at X=${x}, Y=${y}, Z=${z}`
+        );
       } catch (error) {
         return createErrorResponse(error);
       }
