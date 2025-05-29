@@ -1,16 +1,217 @@
 {
-    "image": "mcr.microsoft.com/devcontainers/javascript-node:1-20-bookworm",
-    "customizations": {
-        "vscode": {
-            "extensions": [
-                "ms-vscode.vscode-typescript-next"
-            ]
-        }
+  "image": "mcr.microsoft.com/devcontainers/javascript-node:1-20-bookworm",
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        // TypeScript & JavaScript
+        "ms-vscode.vscode-typescript-next",
+        "ms-vscode.vscode-eslint",
+        "esbenp.prettier-vscode",
+        "ms-vscode.vscode-json",
+
+        // Git & Version Control
+        "eamodio.gitlens",
+        "mhutchie.git-graph",
+        "github.vscode-pull-request-github",
+
+        // Code Quality & Productivity
+        "usernamehw.errorlens",
+        "aaron-bond.better-comments",
+        "wayou.vscode-todo-highlight",
+        "alefragnani.bookmarks",
+        "gruntfuggly.todo-tree",
+        "streetsidesoftware.code-spell-checker",
+
+        // Debugging & Testing
+        "ms-vscode.vscode-debugger-extension-pack",
+        "hbenl.vscode-test-explorer",
+        "ms-vscode.test-adapter-converter",
+
+        // Docker & DevOps
+        "ms-azuretools.vscode-docker",
+        "ms-vscode-remote.remote-containers",
+
+        // Markdown & Documentation
+        "yzhang.markdown-all-in-one",
+        "davidanson.vscode-markdownlint",
+        "bierner.markdown-mermaid",
+
+        // API Development & HTTP
+        "humao.rest-client",
+        "42crunch.vscode-openapi",
+
+        // Minecraft Development
+        "redhat.vscode-yaml",
+        "mechatroner.rainbow-csv",
+
+        // Productivity & UI
+        "ms-vscode.vscode-colors",
+        "formulahendry.auto-rename-tag",
+        "christian-kohler.path-intellisense",
+        "ms-vscode.vscode-folder-source-actions",
+
+        // Package Management
+        "antfu.browse-lite"
+      ],
+      "settings": {
+        // TypeScript settings
+        "typescript.preferences.importModuleSpecifier": "relative",
+        "typescript.suggest.autoImports": true,
+        "typescript.updateImportsOnFileMove.enabled": "always",
+        "typescript.preferences.includePackageJsonAutoImports": "on",
+
+        // Editor settings
+        "editor.formatOnSave": true,
+        "editor.defaultFormatter": "esbenp.prettier-vscode",
+        "editor.codeActionsOnSave": {
+          "source.fixAll.eslint": "explicit",
+          "source.organizeImports": "explicit"
+        },
+        "editor.rulers": [80, 120],
+        "editor.bracketPairColorization.enabled": true,
+        "editor.guides.bracketPairs": true,
+        "editor.inlineSuggest.enabled": true,
+        "editor.quickSuggestions": {
+          "strings": true
+        },
+
+        // File associations
+        "files.associations": {
+          "*.json": "jsonc",
+          "*.mcmeta": "json",
+          "*.mcfunction": "minecraft-lang"
+        },
+        "files.exclude": {
+          "**/node_modules": true,
+          "**/build": false,
+          "**/.git": true,
+          "**/.DS_Store": true
+        },
+        "files.watcherExclude": {
+          "**/node_modules/**": true,
+          "**/build/**": true
+        },
+
+        // Explorer settings
+        "explorer.confirmDelete": false,
+        "explorer.confirmDragAndDrop": false,
+        "explorer.sortOrder": "type",
+
+        // Git settings
+        "git.autofetch": true,
+        "git.enableSmartCommit": true,
+        "git.confirmSync": false,
+
+        // Terminal settings
+        "terminal.integrated.defaultProfile.linux": "bash",
+        "terminal.integrated.fontSize": 14,
+        "terminal.integrated.scrollback": 10000,
+
+        // Debug settings
+        "debug.console.fontSize": 14,
+        "debug.internalConsoleOptions": "openOnSessionStart",
+
+        // Extension specific settings
+        "errorLens.enabledDiagnosticLevels": ["error", "warning"],
+        "todo-tree.general.tags": [
+          "BUG",
+          "HACK",
+          "FIXME",
+          "TODO",
+          "XXX",
+          "[ ]",
+          "[x]"
+        ],
+        "cSpell.words": [
+          "mineflayer",
+          "pathfinder",
+          "minecraft",
+          "mcfunction",
+          "gamemode",
+          "devcontainers",
+          "esbenp",
+          "RCON"
+        ],
+
+        // Workbench settings
+        "workbench.colorTheme": "Default Dark Modern",
+        "workbench.iconTheme": "vs-seti",
+        "workbench.tree.indent": 15,
+        "workbench.editor.enablePreview": false
+      }
+    }
+  },
+  "features": {
+    // Docker outside of Docker for better performance
+    "ghcr.io/devcontainers/features/docker-outside-of-docker:1": {
+      "dockerDashComposeVersion": "v2"
     },
-    "features": {
-        "ghcr.io/devcontainers/features/docker-in-docker:2": {},
-        "ghcr.io/devcontainer-community/devcontainer-features/bun.sh:1": {}
+
+    // Bun package manager
+    "ghcr.io/devcontainer-community/devcontainer-features/bun.sh:1": {},
+
+    // Additional CLI tools
+    "ghcr.io/devcontainers/features/github-cli:1": {},
+    "ghcr.io/devcontainers/features/common-utils:2": {
+      "installZsh": true,
+      "installOhMyZsh": true,
+      "upgradePackages": true,
+      "username": "node"
     },
-    "remoteUser": "node",
-    "postCreateCommand": "bun install"
+
+    // Development tools
+    "ghcr.io/devcontainers/features/node:1": {
+      "nodeGypDependencies": true,
+      "version": "20"
+    }
+  },
+
+  // Container configuration
+  "remoteUser": "node",
+  "workspaceFolder": "/workspaces/${localWorkspaceFolderBasename}",
+
+  // Lifecycle commands
+  "onCreateCommand": "./.devcontainer/create.sh",
+  "postCreateCommand": "bun install",
+  "postStartCommand": "./.devcontainer/startup.sh",
+
+  // Port forwarding
+  "forwardPorts": [3000, 3001, 25565, 25575],
+  "portsAttributes": {
+    "3000": {
+      "label": "MCP Server",
+      "onAutoForward": "notify",
+      "protocol": "http"
+    },
+    "3001": {
+      "label": "Development Server",
+      "onAutoForward": "silent",
+      "protocol": "http"
+    }
+    // "25565": {
+    //   "label": "Minecraft Server",
+    //   "onAutoForward": "notify",
+    //   "protocol": "tcp"
+    // },
+    // "25575": {
+    //   "label": "Minecraft RCON",
+    //   "onAutoForward": "silent",
+    //   "protocol": "tcp"
+    // }
+  },
+
+  // Environment variables
+  "containerEnv": {
+    "NODE_ENV": "development",
+    "MINECRAFT_HOST": "localhost",
+    "MINECRAFT_PORT": "25565",
+    "MCP_SERVER_PORT": "3000",
+    "DEBUG": "mcp:*"
+  },
+
+  // Security and convenience
+  "privileged": false,
+  "init": true,
+  "capAdd": [],
+  "securityOpt": []
 }
