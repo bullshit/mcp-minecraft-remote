@@ -1,4 +1,5 @@
 import minecraftData from "minecraft-data";
+import pathfinderPkg from "mineflayer-pathfinder";
 import { Vec3 } from "vec3";
 import { z } from "zod";
 import { botState, server } from "../server.js";
@@ -8,6 +9,7 @@ import {
   createNotConnectedResponse,
   createSuccessResponse,
 } from "../utils/error-handler.js";
+const { goals } = pathfinderPkg;
 
 // Function to register block operation tools
 export function registerBlockTools() {
@@ -34,7 +36,14 @@ export function registerBlockTools() {
             "No block found at the specified coordinates."
           );
         }
-
+        if (
+          !botState.bot!.canDigBlock(block) ||
+          !botState.bot!.canSeeBlock(block)
+        ) {
+          // Try to move closer to dig the block
+          const goal = new goals.GoalNear(x, y, z, 2);
+          botState.bot!.pathfinder.goto(goal);
+        }
         return new Promise<ToolResponse>((resolve) => {
           // Dig the block
           botState
