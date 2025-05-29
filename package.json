@@ -11,6 +11,15 @@
   "scripts": {
     "build": "tsc && chmod 755 build/index.js",
     "start": "node build/index.js",
+    "dev": "tsx watch src/index.ts",
+    "dev:debug": "tsx watch --inspect src/index.ts",
+    "clean": "rm -rf build",
+    "type-check": "tsc --noEmit",
+    "lint": "eslint src --ext .ts",
+    "lint:fix": "eslint src --ext .ts --fix",
+    "test": "echo 'Add your test command here'",
+    "minecraft:start": "echo 'Starting Minecraft server...'",
+    "minecraft:stop": "echo 'Stopping Minecraft server...'",
     "prepublishOnly": "npm run build"
   },
   "keywords": [
@@ -39,7 +48,11 @@
   "devDependencies": {
     "@types/express": "^5.0.2",
     "@types/node": "^22.13.10",
-    "typescript": "^5.8.2"
+    "typescript": "^5.8.2",
+    "tsx": "^4.7.0",
+    "eslint": "^8.57.0",
+    "@typescript-eslint/parser": "^6.21.0",
+    "@typescript-eslint/eslint-plugin": "^6.21.0"
   },
   "peerDependencies": {
     "typescript": "^5.0.0"
