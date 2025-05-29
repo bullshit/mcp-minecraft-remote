@@ -1,41 +1,41 @@
-import { registerBlockTools } from './blocks.js'
-import { registerBasicMovementTools } from './basicMovement.js'
-import { registerChatTools } from './chat.js'
-import { registerConnectTools } from './connect.js'
-import { registerContainerInteractionTools } from './containerInteraction.js'
-import { registerCraftingTools } from './crafting.js'
-import { registerEntityInteractionTools } from './entityInteraction.js'
-import { registerInfoTools } from './info.js'
-import { registerInventoryTools } from './inventory.js'
-import { registerInventoryManagementTools } from './inventoryManagement.js'
-import { registerMovementTools } from './movement.js'
-import { registerTradingTools } from './trading.js'
+import { registerBasicMovementTools } from "./basicMovement.js";
+import { registerBlockTools } from "./blocks.js";
+import { registerChatTools } from "./chat.js";
+import { registerConnectTools } from "./connect.js";
+import { registerContainerInteractionTools } from "./containerInteraction.js";
+import { registerCraftingTools } from "./crafting.js";
+import { registerEntityInteractionTools } from "./entityInteraction.js";
+import { registerInfoTools } from "./info.js";
+import { registerInventoryTools } from "./inventory.js";
+import { registerInventoryManagementTools } from "./inventoryManagement.js";
+import { registerMovementTools } from "./movement.js";
+import { registerTradingTools } from "./trading.js";
 
 // Function to register all tools
 export function registerAllTools(): void {
   // Core tools
-  registerConnectTools()
-  registerChatTools()
-  
+  registerConnectTools();
+  registerChatTools();
+
   // Movement tools
-  registerMovementTools()
-  registerBasicMovementTools()
-  
+  registerMovementTools();
+  registerBasicMovementTools();
+
   // Block interaction
-  registerBlockTools()
-  
+  registerBlockTools();
+
   // Information tools
-  registerInfoTools()
-  
+  registerInfoTools();
+
   // Inventory tools
-  registerInventoryTools()
-  registerInventoryManagementTools()
-  
+  registerInventoryTools();
+  registerInventoryManagementTools();
+
   // Entity interaction
-  registerEntityInteractionTools()
-  
+  registerEntityInteractionTools();
+
   // Advanced features
-  registerContainerInteractionTools()
-  registerCraftingTools()
-  registerTradingTools()
+  registerContainerInteractionTools();
+  registerCraftingTools();
+  registerTradingTools();
 }
