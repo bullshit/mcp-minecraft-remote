@@ -1,0 +1,86 @@
+services:
+  ###########################################################################
+  #
+  #  Minecraft vanilla server
+  #
+  ###########################################################################
+  server:
+    image: itzg/minecraft-server:2025.5.0@sha256:93ec97a346b7b27a79433de50cfe47854262ef9781fd92488fd7f82b8563cdbb
+    environment:
+      # settings
+      - TZ=Europe/Vienna
+      - EULA=TRUE
+      - ENABLE_RCON=true
+      - RCON_PASSWORD=${RCON_PASSWORD:-minecraft}
+      - ENABLE_ROLLING_LOGS=true
+      - MEMORY=${MEMORY:-2G}
+      - VIEW_DISTANCE=${VIEW_DISTANCE:-15}
+      - SEED=${SEED}
+      # https://github.com/itzg/docker-minecraft-server#enable-timestamps-in-init-logs
+      - LOG_TIMESTAMP=${LOG_TIMESTAMP:-TRUE}
+      # production environment
+      - MOTD=${MOTD:-Development minecraft server}
+      #- SETUP_ONLY=TRUE
+      #- WORLD=/backup/vanilla-20230620-194824.tgz
+      # settings
+      - ENABLE_WHITELIST=false
+      - OPS=oskarwhiskey69
+      - VERSION=1.21.4
+      - DIFFICULTY=peaceful
+      - MODE=${MODE:-creative}
+      # https://github.com/itzg/docker-minecraft-server#snooper
+      - SNOOPER_ENABLED=false
+      # Advanced settings
+      - TYPE=FABRIC
+      # - |
+      #   MODRINTH_PROJECTS=lithium
+      #   carpet
+      #   luckperms
+      #   better-beds
+      #   syncmatica
+      #   detect-afk
+      #   afk-sleep
+      #   afk-dim-names
+      #   afk-message
+      #   afk-sit
+      #   beautified-chat-server
+      #   anti-entity-grief
+      #   open-parties-and-claims
+      #   your-items-are-safe
+      #   veinminer
+      #   fallingtree
+      #   bluemap
+      #   simple-voice-chat
+      #   simple-voice-chat-radio
+      #   enhanced-groups
+      #   fabric-voice-chat-broadcast
+      #   distanthorizons
+      - MODRINTH_DOWNLOAD_DEPENDENCIES=required
+      # enhanced-groups is only in beta for 1.21
+      # distanthorizons is only in alpha for 1.21
+      - MODRINTH_ALLOWED_VERSION_TYPE=alpha
+      - REMOVE_OLD_MODS=true
+      - ONLINE_MODE=${ONLINE_MODE:-false}
+      - LEVEL_TYPE=FLAT
+      #- GENERATOR_SETTINGS={"layers":[{"block":"minecraft:bedrock","height":1},{"block":"minecraft:grass","height":50}],"biome":"minecraft:plains"}
+      # - |
+      #   GENERATOR_SETTINGS=
+      #       {
+      #           "layers": [
+      #               {
+      #                   "block": "minecraft:grass",
+      #                   "height": 50
+      #               }
+      #           ],
+      #           "biome": "minecraft:plains"
+      #       }
+    ports:
+      - 24454:24454/udp # simple voice chat
+      - 25565:25565/tcp # minecraft port
+      - 25575:25575/tcp # RCON port
+    networks:
+      - shared
+networks:
+  shared:
+    name: shared-network
+    external: true
