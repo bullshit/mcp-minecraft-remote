@@ -1,3 +1,4 @@
+import { z } from "zod";
 import { botState, server } from "../server.js";
 import {
   createErrorResponse,
@@ -30,6 +31,38 @@ export function registerInventoryTools() {
         return createSuccessResponse(`Inventory contains: ${itemList}`);
       } catch (error) {
         return createErrorResponse(error);
+      }
+    }
+  );
+
+  // Tool to find a specific item
+  server.tool(
+    "findItem",
+    "Find a specific item in the bot's inventory",
+    {
+      nameOrType: z.string().describe("Name or type of item to find"),
+    },
+    async ({ nameOrType }) => {
+      if (!botState.isConnected || !botState.bot) {
+        return createNotConnectedResponse();
+      }
+      try {
+        const items = botState.bot.inventory.items();
+        const item = items.find((item: any) =>
+          item.name.includes(nameOrType.toLowerCase())
+        );
+
+        if (item) {
+          return createSuccessResponse(
+            `Found ${item.count} ${item.name} in inventory (slot ${item.slot})`
+          );
+        } else {
+          return createSuccessResponse(
+            `Couldn't find any item matching '${nameOrType}' in inventory`
+          );
+        }
+      } catch (error) {
+        return createErrorResponse(error as Error);
       }
     }
   );
