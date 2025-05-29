@@ -187,6 +187,16 @@
       "label": "Development Server",
       "onAutoForward": "silent",
       "protocol": "http"
+    },
+    "6274": {
+      "label": "MCP Inspector",
+      "onAutoForward": "notify",
+      "protocol": "http"
+    },
+    "6277": {
+      "label": "MCP Server Inspector SSE",
+      "onAutoForward": "silent",
+      "protocol": "http"
     }
     // "25565": {
     //   "label": "Minecraft Server",

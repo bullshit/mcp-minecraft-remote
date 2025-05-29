@@ -38,6 +38,20 @@
       "skipFiles": ["<node_internals>/**"],
       "localRoot": "${workspaceFolder}",
       "remoteRoot": "${workspaceFolder}"
+    },
+    {
+      "name": "Launch MCP Inspector",
+      "type": "node",
+      "request": "launch",
+      "runtimeExecutable": "npx",
+      "runtimeArgs": ["@modelcontextprotocol/inspector"],
+      "args": ["node", "build/index.js"],
+      "cwd": "${workspaceFolder}",
+      "console": "integratedTerminal",
+      "skipFiles": ["<node_internals>/**"],
+      "env": {
+        "NODE_ENV": "development"
+      }
     }
   ]
 }
