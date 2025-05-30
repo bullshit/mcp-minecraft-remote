@@ -15,7 +15,7 @@ services:
       - ENABLE_ROLLING_LOGS=true
       - MEMORY=${MEMORY:-2G}
       - VIEW_DISTANCE=${VIEW_DISTANCE:-15}
-      - SEED=${SEED}
+      - SEED=${SEED:-}
       # https://github.com/itzg/docker-minecraft-server#enable-timestamps-in-init-logs
       - LOG_TIMESTAMP=${LOG_TIMESTAMP:-TRUE}
       # production environment
@@ -24,7 +24,7 @@ services:
       #- WORLD=/backup/vanilla-20230620-194824.tgz
       # settings
       - ENABLE_WHITELIST=false
-      - OPS=oskarwhiskey69
+      - OPS=${OPS:-}
       - VERSION=1.21.4
       - DIFFICULTY=peaceful
       - MODE=${MODE:-creative}
