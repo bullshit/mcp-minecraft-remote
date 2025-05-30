@@ -37,10 +37,15 @@ describe("Connection Integration Tests", () => {
         VIEW_DISTANCE: "4", // Reduce for faster startup
         SIMULATION_DISTANCE: "4",
         VERSION: MINECRAFT_VERSION,
+        OPS: "OpsBot",
+        TYPE: "FABRIC",
+        MODRINTH_PROJECTS: "lithium,carpet,luckperms",
+        MODRINTH_DOWNLOAD_DEPENDENCIES: "required",
+        MODRINTH_ALLOWED_VERSION_TYPE: "alpha",
       })
       .withExposedPorts(25565)
-      .withStartupTimeout(120000) // 2 minutes for Minecraft to start
       .withWaitStrategy(Wait.forLogMessage(/.*Done.*/)) // Wait for "Done" message
+      .withStartupTimeout(600000) // 10 minutes for Minecraft to start
       .start();
 
     containerHost = minecraftContainer.getHost();

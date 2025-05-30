@@ -32,29 +32,15 @@ services:
       - SNOOPER_ENABLED=false
       # Advanced settings
       - TYPE=FABRIC
-      # - |
-      #   MODRINTH_PROJECTS=lithium
-      #   carpet
-      #   luckperms
-      #   better-beds
-      #   syncmatica
-      #   detect-afk
-      #   afk-sleep
-      #   afk-dim-names
-      #   afk-message
-      #   afk-sit
-      #   beautified-chat-server
-      #   anti-entity-grief
-      #   open-parties-and-claims
-      #   your-items-are-safe
-      #   veinminer
-      #   fallingtree
-      #   bluemap
-      #   simple-voice-chat
-      #   simple-voice-chat-radio
-      #   enhanced-groups
-      #   fabric-voice-chat-broadcast
-      #   distanthorizons
+      - |
+        MODRINTH_PROJECTS=lithium
+        carpet
+        luckperms
+        veinminer
+        fallingtree
+        detect-afk
+        afk-sleep
+        afk-message
       - MODRINTH_DOWNLOAD_DEPENDENCIES=required
       # enhanced-groups is only in beta for 1.21
       # distanthorizons is only in alpha for 1.21
