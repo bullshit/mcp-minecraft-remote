@@ -31,6 +31,42 @@
       "preLaunchTask": "build"
     },
     {
+      "name": "Debug Unit Tests",
+      "type": "node",
+      "request": "launch",
+      "runtimeExecutable": "bun",
+      "runtimeArgs": ["--inspect-wait", "test"],
+      "args": ["run", "test:unit"],
+      "skipFiles": ["<node_internals>/**", "**/node_modules/**"],
+      "env": {
+        "NODE_ENV": "test",
+        "DEBUG": "vitest:*"
+      },
+      "console": "integratedTerminal",
+      "internalConsoleOptions": "neverOpen",
+      "autoAttachChildProcesses": true
+    },
+    {
+      "name": "Debug Integration Tests",
+      "type": "node",
+      "request": "launch",
+      "runtimeExecutable": "bun",
+      "runtimeArgs": ["--inspect-wait", "test"],
+      "args": ["run", "test:integration"],
+      "skipFiles": ["<node_internals>/**", "**/node_modules/**"],
+      "env": {
+        "NODE_ENV": "test",
+        "DEBUG": "vitest:*,testcontainers:*",
+        "TESTCONTAINERS_DOCKER_SOCKET_OVERRIDE": "/var/run/docker.sock",
+        "TESTCONTAINERS_RYUK_DISABLED": "true",
+        "DOCKER_HOST": "unix:///var/run/docker.sock"
+      },
+      "console": "integratedTerminal",
+      "internalConsoleOptions": "neverOpen",
+      "autoAttachChildProcesses": true,
+      "timeout": 300000
+    },
+    {
       "name": "Attach to Process",
       "type": "node",
       "request": "attach",
