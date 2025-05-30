@@ -11,6 +11,8 @@
   "scripts": {
     "build": "tsc && chmod 755 build/index.js",
     "start": "node build/index.js",
+    "run:container": "docker run -p 3000:3000 mcp-minecraft-remote",
+    "run:container:dev": "docker run -p 3000:3000 -e NODE_ENV=development mcp-minecraft-remote:dev",
     "dev": "tsx watch src/index.ts",
     "dev:debug": "tsx watch --inspect src/index.ts",
     "clean": "rm -rf build",
@@ -27,7 +29,11 @@
     "test:watch": "vitest --watch",
     "test:coverage": "vitest --coverage",
     "test:ci": "vitest run --reporter=verbose --coverage",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "build:image": "pack build mcp-minecraft-remote --builder paketobuildpacks/builder-jammy-base",
+    "build:image:bun": "pack build mcp-minecraft-remote --builder paketobuildpacks/builder-jammy-base --env BP_NODE_ENGINE=bun",
+    "build:image:prod": "pack build mcp-minecraft-remote:latest --builder paketobuildpacks/builder-jammy-base --env BP_NODE_ENV=production",
+    "build:image:dev": "pack build mcp-minecraft-remote:dev --builder paketobuildpacks/builder-jammy-base --env BP_NODE_ENV=development"
   },
   "keywords": [
     "minecraft",

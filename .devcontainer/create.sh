@@ -11,6 +11,9 @@ echo -e "${GREEN}Installing bun!${NC}"
 echo ""
 npm install -g bun
 
+echo -e "${GREEN}Installing cloud native buildpacks tool: Pack CLI!${NC}"
+echo ""
+(curl -sSL "https://github.com/buildpacks/pack/releases/download/v0.37.0/pack-v0.37.0-linux.tgz" | sudo tar -C /usr/local/bin/ --no-same-owner -xzv pack)
 
 echo -e "${GREEN}Installing global tools!${NC}"
 echo ""

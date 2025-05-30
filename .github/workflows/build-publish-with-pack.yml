@@ -1,0 +1,122 @@
+name: Build and Publish with Buildpacks
+
+on:
+  push:
+    branches: [main, develop]
+    tags: ["v*"]
+  pull_request:
+    branches: [main]
+
+env:
+  REGISTRY: ghcr.io
+  IMAGE_NAME: ${{ github.repository }}
+
+jobs:
+  build-and-push:
+    name: Build with Cloud Native Buildpacks
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+      security-events: write
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Pack CLI
+        uses: buildpacks/github-actions/setup-pack@v5.7.2
+
+      - name: Log in to Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Extract metadata
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
+          tags: |
+            type=ref,event=branch
+            type=ref,event=pr
+            type=semver,pattern={{version}}
+            type=semver,pattern={{major}}.{{minor}}
+            type=semver,pattern={{major}}
+            type=sha,prefix={{branch}}-
+            type=raw,value=latest,enable={{is_default_branch}}
+
+      - name: Build with Paketo Buildpacks
+        id: paketo-auto
+        continue-on-error: true
+        run: |
+          # Let buildpacks auto-detect everything
+          pack build temp-image-1 \
+            --builder paketobuildpacks/builder-jammy-base \
+            --env BP_NODE_VERSION=20 \
+            --clear-cache \
+            --verbose
+
+      - name: Determine successful build
+        id: success
+        run: |
+          if [ "${{ steps.paketo-auto.outcome }}" == "success" ]; then
+            echo "image=temp-image-1" >> $GITHUB_OUTPUT
+            echo "builder=Paketo (auto-detect)" >> $GITHUB_OUTPUT
+          else
+            echo "All buildpack attempts failed"
+            exit 1
+          fi
+
+      - name: Tag and push successful image
+        run: |
+          SUCCESS_IMAGE="${{ steps.success.outputs.image }}"
+
+          # Tag with all the metadata tags
+          IFS=$'\n'
+          for tag in ${{ steps.meta.outputs.tags }}; do
+            echo "Tagging as: $tag"
+            docker tag $SUCCESS_IMAGE $tag
+          done
+
+          # Push all tags
+          echo "Pushing images..."
+          docker push ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }} --all-tags
+
+          echo "✅ Successfully built and pushed with ${{ steps.success.outputs.builder }}"
+
+      - name: Run Trivy vulnerability scanner
+        uses: aquasecurity/trivy-action@master
+        with:
+          image-ref: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ github.sha }}
+          format: "sarif"
+          output: "trivy-results.sarif"
+        continue-on-error: true
+
+      - name: Upload Trivy scan results
+        uses: github/codeql-action/upload-sarif@v3
+        if: always()
+        with:
+          sarif_file: "trivy-results.sarif"
+        continue-on-error: true
+
+      - name: Test container
+        run: |
+          # Test the built container
+          docker run -d --name mcp-test -p 3000:3000 ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ github.sha }}
+          sleep 10
+
+          if docker ps | grep -q mcp-test; then
+            echo "✅ Container started successfully"
+            docker logs mcp-test | head -20
+          else
+            echo "❌ Container failed to start"
+            docker logs mcp-test
+            exit 1
+          fi
+
+          # Cleanup
+          docker stop mcp-test
+          docker rm mcp-test

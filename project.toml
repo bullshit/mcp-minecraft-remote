@@ -1,0 +1,16 @@
+[_]
+schema-version = "0.2"
+
+# Minimal configuration - let buildpacks handle everything automatically
+[project]
+id = "mcp-minecraft-remote"
+name = "MCP Minecraft Remote Server"
+
+
+[[io.buildpacks.build.env]]
+name = "BP_EXCLUDE_FILES"
+value = "test/**,coverage/**,*.test.ts,*.spec.ts"
+
+[[io.buildpacks.build.env]]
+name = "BP_NODE_OPTIMIZE_MEMORY"
+value = "true"

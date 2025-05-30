@@ -1,0 +1,44 @@
+# Test files
+
+test/
+coverage/
+_.test.ts
+_.test.js
+_.spec.ts
+_.spec.js
+
+# Development files
+
+.git/
+.github/
+.vscode/
+.devcontainer/
+_.md
+Dockerfile_
+
+# Logs and temp files
+
+logs/
+\*.log
+.tmp/
+.temp/
+
+# OS files
+
+.DS_Store
+Thumbs.db
+
+# IDE files
+
+.idea/
+_.swp
+_.swo
+
+# Build artifacts (keep dist/ for production)
+
+node_modules/
+.vitest/
+
+node_modules/
+bun.lockb
+.bun/
