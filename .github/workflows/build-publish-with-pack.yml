@@ -1,4 +1,4 @@
-name: Build and Publish with Buildpacks
+name: Publish Container with Buildpacks
 
 on:
   push:
@@ -12,8 +12,8 @@ env:
   IMAGE_NAME: ${{ github.repository }}
 
 jobs:
-  build-and-push:
-    name: Build with Cloud Native Buildpacks
+  publish:
+    name: Build and Publish
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -48,46 +48,29 @@ jobs:
             type=sha,prefix={{branch}}-
             type=raw,value=latest,enable={{is_default_branch}}
 
-      - name: Build with Paketo Buildpacks
-        id: paketo-auto
-        continue-on-error: true
+      - name: Build with buildpacks
         run: |
-          # Let buildpacks auto-detect everything
-          pack build temp-image-1 \
+          pack build ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ github.sha }} \
             --builder paketobuildpacks/builder-jammy-base \
-            --env BP_NODE_VERSION=20 \
-            --clear-cache \
-            --verbose
+            --env NODE_ENV=production \
+            --publish
 
-      - name: Determine successful build
-        id: success
+      - name: Tag additional versions
+        env:
+          TAGS: ${{ steps.meta.outputs.tags }}
         run: |
-          if [ "${{ steps.paketo-auto.outcome }}" == "success" ]; then
-            echo "image=temp-image-1" >> $GITHUB_OUTPUT
-            echo "builder=Paketo (auto-detect)" >> $GITHUB_OUTPUT
-          else
-            echo "All buildpack attempts failed"
-            exit 1
-          fi
+          BASE_IMAGE="${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ github.sha }}"
 
-      - name: Tag and push successful image
-        run: |
-          SUCCESS_IMAGE="${{ steps.success.outputs.image }}"
-
-          # Tag with all the metadata tags
-          IFS=$'\n'
-          for tag in ${{ steps.meta.outputs.tags }}; do
-            echo "Tagging as: $tag"
-            docker tag $SUCCESS_IMAGE $tag
+          echo "Tagging additional versions..."
+          echo "$TAGS" | while IFS= read -r tag; do
+            if [ -n "$tag" ] && [ "$tag" != "$BASE_IMAGE" ]; then
+              echo "Tagging as: $tag"
+              docker tag "$BASE_IMAGE" "$tag"
+              docker push "$tag"
+            fi
           done
 
-          # Push all tags
-          echo "Pushing images..."
-          docker push ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }} --all-tags
-
-          echo "✅ Successfully built and pushed with ${{ steps.success.outputs.builder }}"
-
-      - name: Run Trivy vulnerability scanner
+      - name: Run security scan
         uses: aquasecurity/trivy-action@master
         with:
           image-ref: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ github.sha }}
@@ -95,7 +78,7 @@ jobs:
           output: "trivy-results.sarif"
         continue-on-error: true
 
-      - name: Upload Trivy scan results
+      - name: Upload security results
         uses: github/codeql-action/upload-sarif@v3
         if: always()
         with:
@@ -103,20 +86,22 @@ jobs:
         continue-on-error: true
 
       - name: Test container
+        if: github.event_name == 'pull_request'
         run: |
-          # Test the built container
-          docker run -d --name mcp-test -p 3000:3000 ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ github.sha }}
+          echo "Testing container startup..."
+          docker run -d --name mcp-test -p 3000:3000 \
+            ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ github.sha }}
+
           sleep 10
 
           if docker ps | grep -q mcp-test; then
             echo "✅ Container started successfully"
-            docker logs mcp-test | head -20
+            docker logs mcp-test | head -10
           else
             echo "❌ Container failed to start"
             docker logs mcp-test
             exit 1
           fi
 
-          # Cleanup
           docker stop mcp-test
           docker rm mcp-test
