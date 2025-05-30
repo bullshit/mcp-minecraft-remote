@@ -85,25 +85,66 @@ jobs:
           SHA="${{ github.event_name == 'workflow_run' && github.event.workflow_run.head_sha || github.sha }}"
           pack build ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${SHA:0:7} \
             --builder paketobuildpacks/builder-jammy-base \
-            --env BP_NODE_VERSION=20 \
             --env NODE_ENV=production \
-            --publish
 
-      - name: Tag additional versions
-        env:
-          TAGS: ${{ steps.meta.outputs.tags }}
+      - name: Push base image
         run: |
           SHA="${{ github.event_name == 'workflow_run' && github.event.workflow_run.head_sha || github.sha }}"
-          BASE_IMAGE="${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${SHA:0:7}"
+          docker push ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${SHA:0:7}
 
-          echo "Tagging additional versions..."
+      - name: Tag additional versions via Registry API
+        env:
+          TAGS: ${{ steps.meta.outputs.tags }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          SHA="${{ github.event_name == 'workflow_run' && github.event.workflow_run.head_sha || github.sha }}"
+          BASE_TAG="${SHA:0:7}"
+          REPO_LOWER=$(echo "${{ env.IMAGE_NAME }}" | tr '[:upper:]' '[:lower:]')
+
+          # Get the manifest for the base image
+          echo "Getting manifest for base image..."
+          MANIFEST=$(curl -s -H "Authorization: Bearer $GITHUB_TOKEN" \
+            -H "Accept: application/vnd.oci.image.manifest.v1+json" \
+            "https://ghcr.io/v2/${REPO_LOWER}/manifests/${BASE_TAG}")
+
+          if [ -z "$MANIFEST" ] || [ "$MANIFEST" = "null" ]; then
+            echo "❌ Failed to get manifest for base image"
+            exit 1
+          fi
+
+          echo "📦 Base manifest retrieved successfully"
+
+          # Apply each tag by uploading the same manifest
           echo "$TAGS" | while IFS= read -r tag; do
-            if [ -n "$tag" ] && [ "$tag" != "$BASE_IMAGE" ]; then
-              echo "Tagging as: $tag"
-              docker tag "$BASE_IMAGE" "$tag"
-              docker push "$tag"
+            if [ -n "$tag" ]; then
+              # Extract just the tag part after the last colon
+              TAG_NAME=$(echo "$tag" | sed 's/.*://')
+              
+              # Skip if it's the same as our base tag
+              if [ "$TAG_NAME" = "$BASE_TAG" ]; then
+                echo "⏭️  Skipping base tag: $TAG_NAME"
+                continue
+              fi
+              
+              echo "🏷️  Creating tag: $TAG_NAME"
+              
+              RESPONSE=$(curl -s -w "%{http_code}" -o /dev/null \
+                -X PUT \
+                -H "Authorization: Bearer $GITHUB_TOKEN" \
+                -H "Content-Type: application/vnd.oci.image.manifest.v1+json" \
+                -d "$MANIFEST" \
+                "https://ghcr.io/v2/${REPO_LOWER}/manifests/${TAG_NAME}")
+              
+              if [ "$RESPONSE" = "201" ] || [ "$RESPONSE" = "200" ]; then
+                echo "✅ Successfully tagged: $TAG_NAME"
+              else
+                echo "❌ Failed to tag $TAG_NAME (HTTP $RESPONSE)"
+              fi
             fi
           done
+
+          echo ""
+          echo "🎉 Registry API tagging complete!"
 
       - name: Run security scan
         uses: aquasecurity/trivy-action@master
